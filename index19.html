@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SRM AP Virtual Assistant</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --primary-light: #dbeafe;
+      --secondary-color: #f8fafc;
+      --accent-color: #4f46e5;
+      --text-color: #1e293b;
+      --text-light: #64748b;
+      --white: #ffffff;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --border-radius: 16px;
+      --spacing: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background-color: #f1f5f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: var(--text-color);
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 480px;
+      height: 90vh;
+      max-height: 800px;
+      background: var(--white);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+      color: var(--white);
+      padding: var(--spacing);
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      position: relative;
+      z-index: 10;
+    }
+
+    .chat-header i {
+      font-size: 20px;
+    }
+
+    .header-actions {
+      position: absolute;
+      right: 16px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .header-btn {
+      background: transparent;
+      border: none;
+      color: var(--white);
+      font-size: 16px;
+      cursor: pointer;
+      opacity: 0.8;
+      transition: var(--transition);
+    }
+
+    .header-btn:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: var(--spacing);
+      overflow-y: auto;
+      background-color: var(--secondary-color);
+      background-image:
+        radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.03) 1px, transparent 0);
+      background-size: 20px 20px;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      margin-bottom: 12px;
+      padding: 14px 18px;
+      border-radius: 18px;
+      line-height: 1.5;
+      max-width: 85%;
+      position: relative;
+      font-size: 15px;
+      animation: fadeIn 0.3s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: var(--transition);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user-message {
+      background-color: var(--primary-color);
+      color: var(--white);
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+
+    .bot-message {
+      background-color: var(--white);
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .message-time {
+      display: block;
+      font-size: 11px;
+      margin-top: 6px;
+      opacity: 0.7;
+    }
+
+    .user-message .message-time {
+      color: rgba(255, 255, 255, 0.8);
+      text-align: right;
+    }
+
+    .bot-message .message-time {
+      color: var(--text-light);
+    }
+
+    .input-container {
+      padding: 12px;
+      background: var(--white);
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      position: relative;
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 8px;
+      position: relative;
+    }
+
+    .input-field {
+      flex: 1;
+      padding: 14px 52px 14px 18px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 24px;
+      font-size: 15px;
+      outline: none;
+      transition: var(--transition);
+      background-color: var(--secondary-color);
+      resize: none;
+      min-height: 52px;
+      max-height: 120px;
+      line-height: 1.5;
+    }
+
+    .input-field:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .send-button {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--primary-color);
+      color: var(--white);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: var(--transition);
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+    }
+
+    .send-button:hover {
+      background-color: var(--accent-color);
+      transform: scale(1.05);
+    }
+
+    .send-button:active {
+      transform: scale(0.98);
+    }
+
+    .send-button:disabled {
+      background-color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      justify-content: center;
+    }
+
+    .lang-select {
+      padding: 8px 12px 8px 36px;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      background-color: var(--white);
+      color: var(--text-color);
+      font-size: 14px;
+      outline: none;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cline x1='2' y1='12' x2='22' y2='12'%3E%3C/line%3E%3Cpath d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 12px center;
+      background-size: 16px;
+      transition: var(--transition);
+    }
+
+    .lang-select:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .welcome-message {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-light);
+      font-size: 14px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .welcome-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .quick-action {
+      padding: 12px;
+      background-color: var(--white);
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .quick-action:hover {
+      background-color: var(--primary-light);
+      border-color: var(--primary-color);
+      transform: translateY(-2px);
+    }
+
+    .quick-action i {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 8px;
+      color: var(--primary-color);
+    }
+
+    .typing-indicator {
+      display: inline-flex;
+      padding: 12px 16px;
+      background-color: var(--white);
+      border-radius: 18px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      margin-bottom: 12px;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--text-light);
+      border-radius: 50%;
+      margin: 0 2px;
+      animation: typingAnimation 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(1) {
+      animation-delay: 0s;
+    }
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingAnimation {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+
+    .message-options {
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .message:hover .message-options {
+      opacity: 1;
+    }
+
+    .option-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-light);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .option-btn:hover {
+      color: var(--primary-color);
+    }
+
+    /* Scrollbar styling */
+    .chat-box::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .chat-box::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    .chat-box::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 4px;
+    }
+
+    .chat-box::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .chat-container {
+        height: 100vh;
+        max-height: none;
+        border-radius: 0;
+      }
+
+      .quick-actions {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --primary-color: #3b82f6;
+        --primary-light: #1e3a8a;
+        --secondary-color: #1e293b;
+        --accent-color: #6366f1;
+        --text-color: #f8fafc;
+        --text-light: #94a3b8;
+        --white: #0f172a;
+      }
+
+      .chat-container {
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .bot-message {
+        background-color: #1e293b;
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .input-field {
+        background-color: #1e293b;
+        color: white;
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .lang-select {
+        background-color: #1e293b;
+        color: white;
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .quick-action {
+        background-color: #1e293b;
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <i class="fas fa-robot"></i>
+      SRM AP Virtual Assistant
+      <div class="header-actions">
+        <button class="header-btn" title="Clear conversation" onclick="clearChat()">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+        <button class="header-btn" title="Settings" onclick="showSettings()">
+          <i class="fas fa-cog"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="chat-box" id="chatBox">
+      <div class="welcome-message">
+        <div class="welcome-title">Welcome to SRM AP Assistant</div>
+        <p>I'm here to help you with information about SRM University AP. Ask me anything about admissions, courses, faculty, or campus life.</p>
+
+        <div class="quick-actions">
+          <div class="quick-action" onclick="sendQuickQuestion('What are the admission requirements?')">
+            <i class="fas fa-graduation-cap"></i>
+            Admission Info
+          </div>
+          <div class="quick-action" onclick="sendQuickQuestion('What courses are offered?')">
+            <i class="fas fa-book"></i>
+            Courses
+          </div>
+          <div class="quick-action" onclick="sendQuickQuestion('What are the campus facilities?')">
+            <i class="fas fa-building"></i>
+            Campus
+          </div>
+          <div class="quick-action" onclick="sendQuickQuestion('How to contact the university?')">
+            <i class="fas fa-phone-alt"></i>
+            Contact
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-container">
+      <div class="action-buttons">
+        <select id="langSelect" class="lang-select">
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+          <option value="ta">Tamil</option>
+          <option value="te">Telugu</option>
+          <option value="de">German</option>
+          <option value="fr">French</option>
+          <option value="es">Spanish</option>
+          <option value="zh-cn">Chinese</option>
+          <option value="ja">Japanese</option>
+        </select>
+      </div>
+      <div class="input-wrapper">
+        <textarea class="input-field" id="userInput" placeholder="Type your question..." rows="1"></textarea>
+        <button class="send-button" id="sendButton" onclick="sendMessage()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // DOM elements
+    const chatBox = document.getElementById("chatBox");
+    const userInput = document.getElementById("userInput");
+    const sendButton = document.getElementById("sendButton");
+    const langSelect = document.getElementById("langSelect");
+
+    // Initialize chat
+    window.addEventListener('load', () => {
+      userInput.focus();
+      adjustTextareaHeight();
+      addWelcomeTime();
+    });
+
+    // Auto-resize textarea
+    userInput.addEventListener('input', adjustTextareaHeight);
+
+    function adjustTextareaHeight() {
+      userInput.style.height = 'auto';
+      userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
+    }
+
+    function addWelcomeTime() {
+      const timeElement = document.createElement('div');
+      timeElement.className = 'time-stamp';
+      timeElement.textContent = getCurrentTime();
+      chatBox.appendChild(timeElement);
+    }
+
+    function appendMessage(text, sender) {
+      // Remove welcome message if it's the first user message
+      const welcomeMessage = document.querySelector('.welcome-message');
+      if (welcomeMessage && sender === 'user') {
+        welcomeMessage.style.display = 'none';
+      }
+
+      const messageDiv = document.createElement("div");
+      messageDiv.className = `message ${sender === "user" ? "user-message" : "bot-message"}`;
+
+      // Add message options
+      if (sender === 'user') {
+        messageDiv.innerHTML = `
+          ${text}
+          <span class="message-time">${getCurrentTime()}</span>
+          <div class="message-options">
+            <button class="option-btn" title="Edit" onclick="editMessage(this)"><i class="fas fa-edit"></i></button>
+            <button class="option-btn" title="Delete" onclick="deleteMessage(this)"><i class="fas fa-trash"></i></button>
+          </div>
+        `;
+      } else {
+        messageDiv.innerHTML = `
+          ${text}
+          <span class="message-time">${getCurrentTime()}</span>
+          <div class="message-options">
+            <button class="option-btn" title="Copy" onclick="copyMessage(this)"><i class="fas fa-copy"></i></button>
+          </div>
+        `;
+      }
+
+      chatBox.appendChild(messageDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const typingDiv = document.createElement("div");
+      typingDiv.className = "typing-indicator";
+      typingDiv.id = "typingIndicator";
+      typingDiv.innerHTML = `
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      `;
+      chatBox.appendChild(typingDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+      const typingIndicator = document.getElementById("typingIndicator");
+      if (typingIndicator) {
+        typingIndicator.remove();
+      }
+    }
+
+    function getCurrentTime() {
+      const now = new Date();
+      return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function sendMessage() {
+      const message = userInput.value.trim();
+      const lang = langSelect.value;
+
+      if (!message) return;
+
+      appendMessage(message, "user");
+      userInput.value = "";
+      adjustTextareaHeight();
+      sendButton.disabled = true;
+
+      try {
+        showTypingIndicator();
+
+        // Make API call to backend
+        const response = await fetch("/get", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message, lang }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        const botResponse = data.response || "I couldn't process your request. Please try again.";
+
+        hideTypingIndicator();
+        appendMessage(botResponse, "bot");
+      } catch (error) {
+        hideTypingIndicator();
+        appendMessage("I'm having trouble connecting right now. Please check your internet and try again.", "bot");
+        console.error("Error:", error);
+      } finally {
+        sendButton.disabled = false;
+      }
+    }
+
+    function sendQuickQuestion(question) {
+      userInput.value = question;
+      sendMessage();
+    }
+
+    function clearChat() {
+      if (confirm("Are you sure you want to clear this conversation?")) {
+        chatBox.innerHTML = `
+          <div class="welcome-message">
+            <div class="welcome-title">Welcome to SRM AP Assistant</div>
+            <p>I'm here to help you with information about SRM University AP. Ask me anything about admissions, courses, faculty, or campus life.</p>
+
+            <div class="quick-actions">
+              <div class="quick-action" onclick="sendQuickQuestion('What are the admission requirements?')">
+                <i class="fas fa-graduation-cap"></i>
+                Admission Info
+              </div>
+              <div class="quick-action" onclick="sendQuickQuestion('What courses are offered?')">
+                <i class="fas fa-book"></i>
+                Courses
+              </div>
+              <div class="quick-action" onclick="sendQuickQuestion('What are the campus facilities?')">
+                <i class="fas fa-building"></i>
+                Campus
+              </div>
+              <div class="quick-action" onclick="sendQuickQuestion('How to contact the university?')">
+                <i class="fas fa-phone-alt"></i>
+                Contact
+              </div>
+            </div>
+          </div>
+        `;
+        addWelcomeTime();
+      }
+    }
+
+    function showSettings() {
+      alert("Settings panel would open here");
+      // In a real implementation, this would show a modal with settings
+    }
+
+    function editMessage(button) {
+      const messageDiv = button.closest('.message');
+      const messageText = messageDiv.firstChild.textContent.trim();
+      userInput.value = messageText;
+      userInput.focus();
+      messageDiv.remove();
+    }
+
+    function deleteMessage(button) {
+      if (confirm("Delete this message?")) {
+        button.closest('.message').remove();
+      }
+    }
+
+    function copyMessage(button) {
+      const messageText = button.closest('.message').firstChild.textContent.trim();
+      navigator.clipboard.writeText(messageText);
+      alert("Message copied to clipboard!");
+    }
+
+    // Send message on Enter key (but allow Shift+Enter for new lines)
+    userInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>
